@@ -1,9 +1,10 @@
-name: Build and deploy Vite React app to Azure Web App
+name: Build and deploy Vite React app to Azure Web App - Rentease-frontendsy
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -18,16 +19,19 @@ jobs:
         with:
           node-version: '20'
 
+      # Install dependencies
       - name: Install dependencies
         run: npm install
 
+      # Fix permission issue for Vite
+      - name: Fix Vite permission
+        run: chmod +x node_modules/.bin/vite
+
+      # Build project
       - name: Build project
         run: npm run build
 
-      # 🔍 DEBUG (VERY IMPORTANT)
-      - name: Show build output
-        run: ls -R
-
+      # Upload dist folder
       - name: Upload build files
         uses: actions/upload-artifact@v4
         with:
@@ -39,16 +43,14 @@ jobs:
     needs: build
 
     steps:
+      # Download dist
       - name: Download build files
         uses: actions/download-artifact@v4
         with:
           name: build
           path: dist
 
-      # 🔍 DEBUG
-      - name: Check downloaded files
-        run: ls -R
-
+      # Deploy to Azure
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
